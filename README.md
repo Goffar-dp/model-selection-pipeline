@@ -24,7 +24,7 @@ The original application used **AUC** as the primary model-selection metric.
 
 ---
 
-## Why not simply select the model with the highest mean score?
+## Why Not Simply Select the Model with the Highest Mean Score?
 
 Selecting the model with the highest mean AUC, accuracy, F1-score, or another metric does not establish that the observed difference is statistically meaningful.
 
@@ -88,19 +88,19 @@ The objective is not merely to identify the numerically highest-performing model
 
 Let
 
-[
-M={M_1,M_2,\ldots,M_k}
-]
+$$
+M = {M_1, M_2, \ldots, M_k}
+$$
 
-denote the set of candidate machine learning models, where (k\geq3).
+denote the set of candidate machine learning models, where $k \ge 3$.
 
 Let:
 
-* (N) = number of MCCV iterations, typically (N=100)
-* (\Phi) = set of evaluated performance metrics
-* (\alpha) = significance level, typically 0.05
-* (S_{val}) = validation performance
-* (S_{test}) = held-out test performance
+* $N$ = number of MCCV iterations, typically $N = 100$
+* $\Phi$ = set of evaluated performance metrics
+* $\alpha$ = significance level, typically $0.05$
+* $S_{\text{val}}$ = validation performance
+* $S_{\text{test}}$ = held-out test performance
 
 The primary selection metric can be AUC, Accuracy, Kappa, or another appropriate metric.
 
@@ -108,35 +108,23 @@ The primary selection metric can be AUC, Accuracy, Kappa, or another appropriate
 
 ## Step 1 — Temporal/Generalization Stability
 
-For each model (M_i), the pipeline compares the model's validation and held-out test performance across the same MCCV iterations.
+For each model $M_i$, the pipeline compares the model's validation and held-out test performance across the same MCCV iterations.
 
-For iteration (r):
+For iteration $r$:
 
-[
-\Delta_{ir}=S_{test,ir}-S_{val,ir}
-]
+$$
+\Delta_{ir} = S_{\text{test},ir} - S_{\text{val},ir}
+$$
 
 The paired validation and test scores are compared using a paired t-test.
 
-### Decision rule
+### Decision Rule
 
-If:
+If $p_i \ge \alpha$, the model is retained as a **stable candidate**, meaning that the analysis did not detect a statistically significant validation-to-test performance difference.
 
-[
-p_i \geq \alpha
-]
+If $p_i < \alpha$, the model is excluded from the temporally stable candidate pool because statistically significant performance drift was detected.
 
-the model is retained as a **stable candidate**, meaning that the analysis did not detect a statistically significant validation-to-test performance difference.
-
-If:
-
-[
-p_i < \alpha
-]
-
-the model is excluded from the temporally stable candidate pool because statistically significant performance drift was detected.
-
-### Important interpretation
+### Important Interpretation
 
 A non-significant result should **not** be interpreted as proof that the two performances are identical.
 
@@ -154,39 +142,25 @@ The temporally stable models are then compared using the **Friedman test**.
 
 The test evaluates whether there is an overall difference in the performance ranks of the candidate models across the aligned MCCV iterations.
 
-### Null hypothesis
+### Null Hypothesis
 
-[
-H_0:
-\text{The candidate models have equivalent performance ranks.}
-]
+$$
+H_0:\text{The candidate models have equivalent performance ranks.}
+$$
 
-### Alternative hypothesis
+### Alternative Hypothesis
 
-[
-H_1:
-\text{At least one candidate model differs in performance.}
-]
+$$
+H_1:\text{At least one candidate model differs in performance.}
+$$
 
-If:
-
-[
-p \geq \alpha
-]
-
-the null hypothesis is not rejected.
+If $p \ge \alpha$, the null hypothesis is not rejected.
 
 In this case, the analysis reports that **no statistically significant difference was detected among the candidate models**, and the model with the highest mean value of the selected metric is chosen as the practical winner.
 
 This is a **ranking-based selection**, not a claim that all models have been formally proven equivalent.
 
-If:
-
-[
-p < \alpha
-]
-
-the analysis proceeds to Step 3.
+If $p < \alpha$, the analysis proceeds to Step 3.
 
 ---
 
@@ -194,43 +168,42 @@ the analysis proceeds to Step 3.
 
 When the Friedman test detects a statistically significant difference among the candidate models, the model with the highest mean validation performance is identified as the empirical top-ranked model:
 
-[
-M_{top}=
-\arg\max_{M_i}
-\overline{S}_{val,i}
-]
+$$
+M_{\text{top}} =
+\arg\max_{M_i} \overline{S}_{\text{val},i}
+$$
 
 The top-ranked model is then compared against every alternative candidate using the **Conover post-hoc test**.
 
-Only the comparisons:
+Only the comparisons
 
-[
-M_{top} \text{ vs. } M_j
-]
+$$
+M_{\text{top}} \text{ vs. } M_j
+$$
 
 are performed.
 
 This is a **compare-to-best** strategy rather than a full all-pairs post-hoc analysis.
 
-### Multiple-comparison correction
+### Multiple-Comparison Correction
 
-If there are (k) candidate models, the number of comparisons is:
+If there are $k$ candidate models, the number of comparisons is:
 
-[
-m=k-1
-]
+$$
+m = k - 1
+$$
 
 A Bonferroni-adjusted significance level is therefore used:
 
-[
-\alpha_{adj}=\frac{\alpha}{k-1}
-]
+$$
+\alpha_{\text{adj}} = \frac{\alpha}{k-1}
+$$
 
 For each comparison:
 
-[
-p < \alpha_{adj}
-]
+$$
+p < \alpha_{\text{adj}}
+$$
 
 indicates that the top-ranked model is statistically distinguishable from that alternative.
 
@@ -337,18 +310,18 @@ Step 3: Compare-to-Best Post-Hoc Selection
 
 The pipeline requires at least three candidate models.
 
-| Number of models | Status        | Interpretation                                                                                         |
+| Number of Models | Status        | Interpretation                                                                                         |
 | ---------------: | ------------- | ------------------------------------------------------------------------------------------------------ |
-|            (k=2) | Not supported | The global Friedman stage provides little additional information beyond a two-model paired comparison. |
-|            (k=3) | Supported     | Minimum operating configuration; candidate rankings are based on a small model pool.                   |
-|            (k=4) | Supported     | Valid, but still a relatively small comparison set.                                                    |
-|         (k\geq5) | Recommended   | Provides a broader benchmarking setting and a more informative compare-to-best analysis.               |
+|            $k=2$ | Not supported | The global Friedman stage provides little additional information beyond a two-model paired comparison. |
+|            $k=3$ | Supported     | Minimum operating configuration; candidate rankings are based on a small model pool.                   |
+|            $k=4$ | Supported     | Valid, but still a relatively small comparison set.                                                    |
+|         $k\geq5$ | Recommended   | Provides a broader benchmarking setting and a more informative compare-to-best analysis.               |
 
 The implementation raises `InsufficientModelsError` when fewer than three models are supplied.
 
-For (3\leq k<5), the implementation may issue a `UserWarning` indicating that the candidate pool is relatively small.
+For $3 \leq k < 5$, the implementation may issue a `UserWarning` indicating that the candidate pool is relatively small.
 
-The recommendation of (k\geq5) should be understood as a **practical benchmarking recommendation**, rather than a universal statistical requirement.
+The recommendation of $k \geq 5$ should be understood as a **practical benchmarking recommendation**, rather than a universal statistical requirement.
 
 ---
 
@@ -360,17 +333,15 @@ The default metric in the original public-health application is **AUC** because 
 
 For a binary classifier:
 
-[
+$$
 AUC \in [0,1]
-]
+$$
 
 and larger values indicate better discrimination.
 
 However, the appropriate metric depends on the prediction task.
 
-### Recommended examples
-
-| Model/application                | Possible selection metric                              |
+| Model/Application                | Possible Selection Metric                              |
 | -------------------------------- | ------------------------------------------------------ |
 | Probabilistic binary classifier  | AUC                                                    |
 | Threshold-based classifier       | Accuracy                                               |
@@ -378,7 +349,7 @@ However, the appropriate metric depends on the prediction task.
 | Agreement-focused classification | Kappa                                                  |
 | Rule-based/symbolic classifier   | Accuracy, Kappa, F1, or another threshold-based metric |
 
-### Rule-based models
+### Rule-Based Models
 
 AUC should not automatically be used for a deterministic rule-set or symbolic classifier if the model does not produce meaningful continuous prediction scores.
 
@@ -445,7 +416,7 @@ Test,0.83,0.77,0.72,0.80
 ...
 ```
 
-There should be (N) observations for each split.
+There should be $N$ observations for each split.
 
 The validation and test observations must correspond to the **same MCCV iteration index**.
 
@@ -548,13 +519,13 @@ This makes the selection process reproducible and auditable rather than relying 
 
 The pipeline distinguishes between two situations.
 
-### Case 1 — No significant global difference
+## Case 1 — No Significant Global Difference
 
 If the Friedman test gives:
 
-[
-p\geq\alpha
-]
+$$
+p \geq \alpha
+$$
 
 the analysis reports:
 
@@ -566,13 +537,13 @@ This should not be described as proof that the selected model is statistically s
 
 ---
 
-### Case 2 — Significant global difference
+## Case 2 — Significant Global Difference
 
 If:
 
-[
-p<\alpha
-]
+$$
+p < \alpha
+$$
 
 the Conover post-hoc analysis determines whether the empirical top-ranked model is statistically distinguishable from each alternative.
 
@@ -586,39 +557,39 @@ If one or more alternatives are not significantly different from the top model, 
 
 The pipeline is designed to avoid three common weaknesses in model benchmarking.
 
-### 1. Ignoring validation-to-test drift
+### 1. Ignoring Validation-to-Test Drift
 
 A model can perform well during validation but deteriorate on the corresponding held-out test split.
 
 Step 1 explicitly examines this difference.
 
-### 2. Treating numerical differences as statistical differences
+### 2. Treating Numerical Differences as Statistical Differences
 
 A model with AUC = 0.881 is not necessarily statistically superior to a model with AUC = 0.878.
 
 Step 2 evaluates whether an overall difference exists.
 
-### 3. Performing unrestricted pairwise testing
+### 3. Performing Unrestricted Pairwise Testing
 
 Testing every model against every other model increases the number of comparisons.
 
-Step 3 instead uses a predefined **compare-to-best** strategy and applies a Bonferroni correction across the (k-1) comparisons involving the empirical top-ranked model.
+Step 3 instead uses a predefined **compare-to-best** strategy and applies a Bonferroni correction across the $k-1$ comparisons involving the empirical top-ranked model.
 
 ---
 
 # Statistical Tests
 
-The pipeline combines the following procedures:
+The pipeline combines the following procedures.
 
-## Paired t-test
+## Paired t-Test
 
 Used to compare iteration-aligned validation and held-out test performance for each model.
 
 For each model:
 
-[
-\Delta_r=S_{test,r}-S_{val,r}
-]
+$$
+\Delta_r = S_{\text{test},r} - S_{\text{val},r}
+$$
 
 The test evaluates whether the mean validation-test difference differs significantly from zero.
 
@@ -642,15 +613,15 @@ When the Friedman test is significant, Conover's post-hoc procedure is used to c
 
 The number of comparisons is:
 
-[
-m=k-1
-]
+$$
+m = k-1
+$$
 
 and the Bonferroni-adjusted significance threshold is:
 
-[
-\alpha_{adj}=\frac{\alpha}{k-1}
-]
+$$
+\alpha_{\text{adj}} = \frac{\alpha}{k-1}
+$$
 
 ---
 
@@ -658,23 +629,23 @@ and the Bonferroni-adjusted significance threshold is:
 
 The pipeline assumes:
 
-### 1. Iteration alignment
+### 1. Iteration Alignment
 
 The same MCCV iteration index must correspond to the same resampling/split across models.
 
-### 2. Paired observations
+### 2. Paired Observations
 
 Model performance must be evaluated on corresponding MCCV iterations so that model comparisons are paired.
 
-### 3. Repeated resampling
+### 3. Repeated Resampling
 
 The procedure is designed for repeated MCCV or a similar repeated resampling framework.
 
-### 4. Appropriate metric
+### 4. Appropriate Metric
 
 The selected metric must be meaningful for the underlying prediction task.
 
-### 5. Predefined selection metric
+### 5. Predefined Selection Metric
 
 The primary metric should be specified before model selection rather than chosen after observing the results.
 
@@ -682,13 +653,13 @@ The primary metric should be specified before model selection rather than chosen
 
 # Important Statistical Considerations
 
-## Non-significance is not equivalence
+## Non-Significance Is Not Equivalence
 
 The pipeline intentionally avoids interpreting:
 
-[
-p\geq0.05
-]
+$$
+p \geq 0.05
+$$
 
 as proof that two models are equivalent.
 
@@ -700,7 +671,7 @@ For applications where formal equivalence is important, an equivalence-testing f
 
 ---
 
-## MCCV iterations are resampled observations
+## MCCV Iterations Are Resampled Observations
 
 Although 100 MCCV iterations are commonly used to characterize performance variability, the resulting observations arise from overlapping resamples and should not automatically be interpreted as 100 independent experimental datasets.
 
@@ -708,39 +679,39 @@ Therefore, statistical results should be interpreted as **resampling-based evide
 
 ---
 
-## Compare-to-best versus all-pairs testing
+## Compare-to-Best Versus All-Pairs Testing
 
 This pipeline does not perform every possible pairwise comparison.
 
-For (k) models:
+For $k$ models:
 
 * Full pairwise comparison requires
 
-[
+$$
 \frac{k(k-1)}{2}
-]
+$$
 
 comparisons.
 
-* The compare-to-best strategy requires only:
+* The compare-to-best strategy requires only
 
-[
+$$
 k-1
-]
+$$
 
 comparisons.
 
 For seven models:
 
-[
+$$
 \frac{7(7-1)}{2}=21
-]
+$$
 
 full pairwise comparisons would be required, whereas the proposed approach performs:
 
-[
+$$
 7-1=6
-]
+$$
 
 top-versus-alternative comparisons.
 
@@ -857,25 +828,25 @@ Its purpose is to provide a structured statistical layer **after model evaluatio
 
 The current framework has several limitations.
 
-### Temporal stability criterion
+### Temporal Stability Criterion
 
 The paired t-test identifies statistically significant validation-test drift but does not constitute a formal equivalence test.
 
-### MCCV dependence
+### MCCV Dependence
 
 Repeated MCCV observations may be correlated because different iterations can contain overlapping observations.
 
-### Candidate-model selection
+### Candidate-Model Selection
 
 The same performance results are used to rank the empirical top model and conduct the compare-to-best comparisons. Therefore, the resulting post-hoc evidence should be interpreted as part of a predefined model-selection procedure rather than as an independent confirmatory test.
 
-### Fallback procedure
+### Fallback Procedure
 
 When fewer than three models satisfy the temporal stability criterion, the implementation uses the top three models ranked by mean validation performance to maintain a viable candidate pool for the subsequent comparison stage.
 
 These fallback models should therefore be interpreted as **fallback candidates**, not as models independently demonstrated to be temporally stable.
 
-### Metric dependence
+### Metric Dependence
 
 Model-selection conclusions depend on the selected primary metric. A model that is optimal according to AUC may not be optimal according to accuracy, sensitivity, specificity, F1-score, or Kappa.
 
@@ -902,7 +873,7 @@ The citation will be updated with the final proceedings information, volume, pag
 
 # Statistical References
 
-If you use this pipeline, please cite the statistical procedures on which it is based:
+If you use this pipeline, please cite the statistical procedures on which it is based.
 
 ### Friedman Test
 
