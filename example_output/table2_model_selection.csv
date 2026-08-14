@@ -1,0 +1,18 @@
+Item,Value
+Step 1: Temporal Stability,
+Models retained (M_temporal),"['LR', 'RF', 'SVM', 'LGBM', 'CAT', 'STACK']"
+Fallback triggered (< min_stable_models),False
+,
+Step 2: Friedman test among M_candidate,
+Chi-square,423.96
+P-value,2.0283e-89*
+Early return (models equivalent),False
+,
+Step 3: Conover post-hoc test,
+P-Value CAT_vs_STACK,7.7209e-05
+P-Value CAT_vs_LGBM,7.9040e-07
+P-Value CAT_vs_RF,0.0000e+00
+P-Value CAT_vs_SVM,0.0000e+00
+P-Value CAT_vs_LR,0.0000e+00
+,
+M_best,CAT
